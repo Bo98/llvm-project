@@ -56,12 +56,6 @@ if(LLVM_BUILD_LLVM_DYLIB)
 
   target_link_libraries(LLVM PRIVATE ${LIB_NAMES})
 
-  if (APPLE)
-    set_property(TARGET LLVM APPEND_STRING PROPERTY
-                LINK_FLAGS
-                " -compatibility_version 1 -current_version ${LLVM_VERSION_MAJOR}.${LLVM_VERSION_MINOR}.${LLVM_VERSION_PATCH}")
-  endif()
-
   if(TARGET libLLVMExports)
     add_dependencies(LLVM libLLVMExports)
   endif()
@@ -82,7 +76,7 @@ if(LLVM_BUILD_LLVM_C_DYLIB AND NOT MSVC)
   set(LLVM_EXPORTED_SYMBOL_FILE ${CMAKE_BINARY_DIR}/libllvm-c.exports)
 
   set(LIB_DIR ${CMAKE_BINARY_DIR}/${CMAKE_CFG_INTDIR}/lib${LLVM_LIBDIR_SUFFIX})
-  set(LIB_NAME ${LIB_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}LLVM)
+  set(LIB_NAME ${LIB_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}LLVM-${LLVM_VERSION_MAJOR}${LLVM_VERSION_SUFFIX})
   set(LIB_PATH ${LIB_NAME}${CMAKE_SHARED_LIBRARY_SUFFIX})
   set(LIB_EXPORTS_PATH ${LIB_NAME}.exports)
   list(APPEND LLVM_DYLIB_REQUIRED_EXPORTS ${LIB_EXPORTS_PATH})
@@ -103,7 +97,7 @@ if(LLVM_BUILD_LLVM_C_DYLIB AND NOT MSVC)
 
   set_property(TARGET LLVM-C APPEND_STRING PROPERTY
               LINK_FLAGS
-              " -compatibility_version 1 -current_version ${LLVM_VERSION_MAJOR}.${LLVM_VERSION_MINOR}.${LLVM_VERSION_PATCH} -Wl,-reexport_library ${LIB_PATH}")
+              " -Wl,-reexport_library ${LIB_PATH}")
 endif()
 
 if(LLVM_BUILD_LLVM_C_DYLIB AND MSVC)

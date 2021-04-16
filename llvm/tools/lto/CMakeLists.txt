@@ -33,7 +33,8 @@ if (APPLE)
   if(LLVM_LTO_VERSION_OFFSET)
     math(EXPR LTO_VERSION "${LLVM_VERSION_MAJOR} + ${LLVM_LTO_VERSION_OFFSET}")
   endif()
-  set_property(TARGET LTO APPEND_STRING PROPERTY
-              LINK_FLAGS
-              " -compatibility_version 1 -current_version ${LTO_VERSION}.${LLVM_VERSION_MINOR}.${LLVM_VERSION_PATCH}")
+  set_target_properties(LTO
+                        PROPERTIES
+                        SOVERSION ${LTO_VERSION}${LLVM_VERSION_SUFFIX}
+                        VERSION ${LTO_VERSION}.${LLVM_VERSION_MINOR}.${LLVM_VERSION_PATCH}${LLVM_VERSION_SUFFIX})
 endif()

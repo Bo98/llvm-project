@@ -555,22 +555,10 @@ function(llvm_add_library name)
       )
   endif()
 
-  if(ARG_SHARED)
-    if(MSVC)
-      set_target_properties(${name} PROPERTIES
-        PREFIX ""
-        )
-    endif()
-
-    # Set SOVERSION on shared libraries that lack explicit SONAME
-    # specifier, on *nix systems that are not Darwin.
-    if(UNIX AND NOT APPLE AND NOT ARG_SONAME)
-      set_target_properties(${name}
-        PROPERTIES
-        # Since 4.0.0, the ABI version is indicated by the major version
-        SOVERSION ${LLVM_VERSION_MAJOR}${LLVM_VERSION_SUFFIX}
-        VERSION ${LLVM_VERSION_MAJOR}${LLVM_VERSION_SUFFIX})
-    endif()
+  if(ARG_SHARED AND MSVC)
+    set_target_properties(${name} PROPERTIES
+      PREFIX ""
+      )
   endif()
 
   if(ARG_MODULE OR ARG_SHARED)
@@ -586,7 +574,7 @@ function(llvm_add_library name)
   endif()
 
   if(ARG_SHARED AND UNIX)
-    if(NOT APPLE AND ARG_SONAME)
+    if(ARG_SONAME)
       get_target_property(output_name ${name} OUTPUT_NAME)
       if(${output_name} STREQUAL "output_name-NOTFOUND")
         set(output_name ${name})
@@ -594,10 +582,22 @@ function(llvm_add_library name)
       set(library_name ${output_name}-${LLVM_VERSION_MAJOR}${LLVM_VERSION_SUFFIX})
       set(api_name ${output_name}-${LLVM_VERSION_MAJOR}.${LLVM_VERSION_MINOR}.${LLVM_VERSION_PATCH}${LLVM_VERSION_SUFFIX})
       set_target_properties(${name} PROPERTIES OUTPUT_NAME ${library_name})
+      if(APPLE)
+        set_property(TARGET ${name} APPEND_STRING PROPERTY
+                     LINK_FLAGS
+                     " -compatibility_version ${LLVM_VERSION_MAJOR} -current_version ${LLVM_VERSION_MAJOR}.${LLVM_VERSION_MINOR}.${LLVM_VERSION_PATCH}")
+      endif()
       llvm_install_library_symlink(${api_name} ${library_name} SHARED
         COMPONENT ${name})
       llvm_install_library_symlink(${output_name} ${library_name} SHARED
         COMPONENT ${name})
+    else()
+      # Set SOVERSION on shared libraries that lack explicit SONAME specifier.
+      set_target_properties(${name}
+        PROPERTIES
+        # Since 4.0.0, the ABI version is indicated by the major version
+        SOVERSION ${LLVM_VERSION_MAJOR}${LLVM_VERSION_SUFFIX}
+        VERSION ${LLVM_VERSION_MAJOR}.${LLVM_VERSION_MINOR}.${LLVM_VERSION_PATCH}${LLVM_VERSION_SUFFIX})
     endif()
   endif()
 
